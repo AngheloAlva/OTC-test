@@ -20,6 +20,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useEffect } from "react"
 
 export function NavUser(): React.ReactElement {
 	const { data: session, isPending } = authClient.useSession()
@@ -36,9 +37,11 @@ export function NavUser(): React.ReactElement {
 		})
 	}
 
-	if (!session) {
-		router.push("/auth/login")
-	}
+	useEffect(() => {
+		if (!session) {
+			router.push("/auth/login")
+		}
+	}, [session, router])
 
 	return (
 		<SidebarMenu>
