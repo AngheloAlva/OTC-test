@@ -41,3 +41,5 @@ export const auth = betterAuth({
 	plugins: [nextCookies(), admin()],
 	baseURL: process.env.NEXT_PUBLIC_BASE_URL!,
 })
+
+export type Session = typeof auth.$Infer.Session

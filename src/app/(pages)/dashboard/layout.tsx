@@ -8,7 +8,11 @@ import {
 	BreadcrumbPage,
 } from "@/components/ui/breadcrumb"
 
-export default function DashboardLayout({ children }: { children: React.ReactElement }) {
+export default function DashboardLayout({
+	children,
+}: Readonly<{
+	children: React.ReactNode
+}>) {
 	return (
 		<SidebarProvider>
 			<AppSidebar />
