@@ -1,14 +1,12 @@
 "use client"
 
-import { registerSchema } from "@/lib/form-schemas/register-schema"
+import { loginSchema } from "@/lib/form-schemas/login-schema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { authClient } from "@/lib/auth-client"
 import { useToast } from "@/hooks/use-toast"
-import { formatRut } from "@/lib/formatRut"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { useState } from "react"
-import Link from "next/link"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
@@ -21,32 +19,27 @@ import {
 	FormControl,
 	FormMessage,
 } from "@/components/ui/form"
+import Link from "next/link"
 
-export default function RegisterForm(): React.ReactElement {
+export default function LoginForm(): React.ReactElement {
 	const [loading, setLoading] = useState(false)
 
 	const { toast } = useToast()
 	const router = useRouter()
 
-	const form = useForm<z.infer<typeof registerSchema>>({
-		resolver: zodResolver(registerSchema),
+	const form = useForm<z.infer<typeof loginSchema>>({
+		resolver: zodResolver(loginSchema),
 		defaultValues: {
-			rut: "",
-			name: "",
 			email: "",
-			otNumber: "",
 			password: "",
 		},
 	})
 
-	async function onSubmit(values: z.infer<typeof registerSchema>) {
-		await authClient.signUp.email(
+	async function onSubmit(values: z.infer<typeof loginSchema>) {
+		await authClient.signIn.email(
 			{
 				email: values.email,
 				password: values.password,
-				name: values.name,
-				rut: values.rut,
-				otNumber: values.otNumber,
 			},
 			{
 				onRequest: () => {
@@ -56,8 +49,8 @@ export default function RegisterForm(): React.ReactElement {
 					setLoading(false)
 
 					toast({
-						title: "Cuenta creada",
-						description: "Tu cuenta ha sido creada exitosamente",
+						title: "Inicio de sesión",
+						description: "Has iniciado sesión exitosamente",
 						duration: 3000,
 					})
 
@@ -78,25 +71,7 @@ export default function RegisterForm(): React.ReactElement {
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3 md:grid-cols-2">
-				<FormField
-					control={form.control}
-					name="name"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel className="text-gray-700">Nombre de la empresa</FormLabel>
-							<FormControl>
-								<Input
-									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Nombre de la empresa"
-									{...field}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
+			<form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-col gap-3">
 				<FormField
 					control={form.control}
 					name="email"
@@ -134,50 +109,6 @@ export default function RegisterForm(): React.ReactElement {
 					)}
 				/>
 
-				<FormField
-					control={form.control}
-					name="rut"
-					render={({ field }) => {
-						// eslint-disable-next-line @typescript-eslint/no-unused-vars
-						const { onChange, ...restFieldProps } = field
-
-						return (
-							<FormItem>
-								<FormLabel className="text-gray-700">RUT de la empresa</FormLabel>
-								<FormControl>
-									<Input
-										className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-										onChange={(e) => {
-											field.onChange(formatRut(e.target.value))
-										}}
-										placeholder="RUT de la empresa"
-										{...restFieldProps}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)
-					}}
-				/>
-
-				<FormField
-					control={form.control}
-					name="otNumber"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel className="text-gray-700">Numero de OT</FormLabel>
-							<FormControl>
-								<Input
-									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Numero de OT"
-									{...field}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
 				<Button className="mt-4 md:col-span-2" type="submit" disabled={loading}>
 					{loading ? (
 						<div role="status" className="flex items-center justify-center">
@@ -200,14 +131,14 @@ export default function RegisterForm(): React.ReactElement {
 							<span className="sr-only">Cargando...</span>
 						</div>
 					) : (
-						"Crear cuenta"
+						"Iniciar sesión"
 					)}
 				</Button>
 
 				<p className="mt-4 text-sm text-gray-500 sm:mt-0">
-					¿Ya tienes una cuenta?{" "}
+					¿No tienes una cuenta?{" "}
 					<Link href="/auth/register" className="text-gray-700 underline">
-						Inicia sesión
+						Regístrate
 					</Link>
 				</p>
 			</form>
