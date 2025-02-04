@@ -31,11 +31,6 @@ export const auth = betterAuth({
 				required: true,
 				unique: true,
 			},
-			otNumber: {
-				type: "string",
-				required: true,
-				unique: true,
-			},
 		},
 	},
 	plugins: [nextCookies(), admin()],

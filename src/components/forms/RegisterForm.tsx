@@ -34,7 +34,6 @@ export default function RegisterForm(): React.ReactElement {
 			rut: "",
 			name: "",
 			email: "",
-			otNumber: "",
 			password: "",
 		},
 	})
@@ -46,7 +45,6 @@ export default function RegisterForm(): React.ReactElement {
 				password: values.password,
 				name: values.name,
 				rut: values.rut,
-				otNumber: values.otNumber,
 			},
 			{
 				onRequest: () => {
@@ -160,24 +158,6 @@ export default function RegisterForm(): React.ReactElement {
 					}}
 				/>
 
-				<FormField
-					control={form.control}
-					name="otNumber"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel className="text-gray-700">Numero de OT</FormLabel>
-							<FormControl>
-								<Input
-									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Numero de OT"
-									{...field}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
 				<Button className="mt-4 md:col-span-2" type="submit" disabled={loading}>
 					{loading ? (
 						<div role="status" className="flex items-center justify-center">
@@ -206,7 +186,7 @@ export default function RegisterForm(): React.ReactElement {
 
 				<p className="mt-4 text-sm text-gray-500 sm:mt-0">
 					¿Ya tienes una cuenta?{" "}
-					<Link href="/auth/register" className="text-gray-700 underline">
+					<Link href="/auth/login" className="text-gray-700 underline">
 						Inicia sesión
 					</Link>
 				</p>

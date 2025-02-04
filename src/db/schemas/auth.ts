@@ -13,7 +13,6 @@ export const user = sqliteTable("user", {
 	banReason: text("ban_reason"),
 	banExpires: integer("ban_expires", { mode: "timestamp" }),
 	rut: text("rut").notNull().unique(),
-	otNumber: text("ot_number").notNull().unique(),
 })
 
 export const session = sqliteTable("session", {
