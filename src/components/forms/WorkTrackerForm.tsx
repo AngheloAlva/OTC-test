@@ -3,10 +3,10 @@
 import { workTrackerSchema } from "@/lib/form-schemas/work-tracker-schema"
 import { createWorkTracker } from "@/actions/createWorkTracker"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect, useRef, useState } from "react"
 import { authClient } from "@/lib/auth-client"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { es } from "date-fns/locale"
 import { format } from "date-fns"
@@ -34,7 +34,7 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 	const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
 	const [loading, setLoading] = useState(false)
-	const fileInputRef = useRef<HTMLInputElement>(null)
+	// const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const { toast } = useToast()
 	const router = useRouter()
