@@ -1,7 +1,9 @@
 "use client"
 
 import { workTrackerSchema } from "@/lib/form-schemas/work-tracker-schema"
+import { createWorkTracker } from "@/actions/createWorkTracker"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect, useRef, useState } from "react"
 import { authClient } from "@/lib/auth-client"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
@@ -9,9 +11,9 @@ import { useForm } from "react-hook-form"
 import { es } from "date-fns/locale"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { useEffect, useState } from "react"
 import { z } from "zod"
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,12 +28,13 @@ import {
 	FormControl,
 	FormMessage,
 } from "@/components/ui/form"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { createWorkTracker } from "@/actions/createWorkTracker"
 
 export default function WorkTrackerForm(): React.ReactElement {
-	const { data: session } = authClient.useSession()
+	const { data: session, isPending } = authClient.useSession()
+
+	const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
 	const [loading, setLoading] = useState(false)
+	const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const { toast } = useToast()
 	const router = useRouter()
@@ -42,6 +45,7 @@ export default function WorkTrackerForm(): React.ReactElement {
 			userId: session?.user.id,
 			location: "",
 			otNumber: "",
+			patrolType: "",
 			description: "",
 			date: new Date(),
 			dedicatedHours: "",
@@ -51,6 +55,27 @@ export default function WorkTrackerForm(): React.ReactElement {
 	})
 
 	useEffect(() => {
+		if (!isPending && session?.user) {
+			form.setValue("userId", session?.user.id)
+		}
+	}, [isPending])
+
+	useEffect(() => {
+		navigator.geolocation.getCurrentPosition((position) => {
+			form.setValue("location", `${position.coords.latitude},${position.coords.longitude}`)
+		})
+	}, [form])
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const files = e.target.files
+
+		if (files?.length) {
+			setSelectedFiles(files)
+			// form.setValue("attachments", files)
+		}
+	}
+
+	useEffect(() => {
 		navigator.geolocation.getCurrentPosition((position) => {
 			form.setValue("location", `${position.coords.latitude},${position.coords.longitude}`)
 		})
@@ -58,6 +83,7 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 	useEffect(() => {
 		console.log(form.formState)
+		console.log(form.formState.errors)
 	}, [form.formState])
 
 	async function onSubmit(values: z.infer<typeof workTrackerSchema>) {
@@ -176,6 +202,24 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 				<FormField
 					control={form.control}
+					name="patrolType"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="text-gray-700">Tipo de patrullaje</FormLabel>
+							<FormControl>
+								<Input
+									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
+									placeholder="Tipo de patrullaje"
+									{...field}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+
+				<FormField
+					control={form.control}
 					name="dedicatedHours"
 					render={({ field }) => (
 						<FormItem>
@@ -233,6 +277,24 @@ export default function WorkTrackerForm(): React.ReactElement {
 						</FormItem>
 					)}
 				/>
+
+				<FormItem>
+					<FormLabel className="text-gray-700">Adjuntos</FormLabel>
+					<FormControl>
+						<Input
+							multiple
+							type="file"
+							onChange={handleFileChange}
+							className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-gray-700 hover:file:bg-gray-200"
+							accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+						/>
+					</FormControl>
+					{selectedFiles && (
+						<p className="text-sm text-gray-500">
+							{selectedFiles.length} archivo{selectedFiles.length > 1 && "s"} seleccionado
+						</p>
+					)}
+				</FormItem>
 
 				<Button className="mt-4 md:col-span-2" type="submit" disabled={loading}>
 					{loading ? (

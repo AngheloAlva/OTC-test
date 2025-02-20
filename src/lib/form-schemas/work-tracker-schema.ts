@@ -9,4 +9,15 @@ export const workTrackerSchema = z.object({
 	dedicatedHours: z.string().nonempty({ message: "Debe ingresar un número de horas" }),
 	quantityPersons: z.string().nonempty({ message: "Debe ingresar un número de personas" }),
 	status: z.enum(["pendiente", "aprobado", "rechazado"], { message: "Debe seleccionar un estado" }),
+	patrolType: z.string().nonempty({ message: "Debe seleccionar un tipo de patrulla" }),
+	// attachments: z.instanceof(FileList).optional(),
+	// .refine(
+	// 	(files) => {
+	// 		if (!files) return true
+	// 		return Array.from(files).every((file) => file.size <= 5 * 1024 * 1024)
+	// 	},
+	// 	{
+	// 		message: "Cada archivo no puede pesar más de 5MB",
+	// 	}
+	// ),
 })
