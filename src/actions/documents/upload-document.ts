@@ -1,31 +1,27 @@
 "use server"
 
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
-import { PutObjectCommand } from "@aws-sdk/client-s3"
-import { S3, S3_BUCKET } from "@/lib/s3-client"
+import { db } from "@/db"
+import { document } from "@/db/schemas/document"
+import { z } from "zod"
+import { documentSchema } from "@/lib/form-schemas/document.schema"
 
-export async function uploadDocument(filenames: string[]) {
+export const saveDocument = async (data: z.infer<typeof documentSchema>, fileUrl: string) => {
 	try {
-		const urls = await Promise.all(
-			filenames.map(async (filename) => {
-				const url = await getSignedUrl(
-					S3,
-					new PutObjectCommand({
-						Bucket: S3_BUCKET,
-						Key: filename,
-					}),
-					{
-						expiresIn: 600,
-					}
-				)
+		const result = await db.insert(document).values({
+			...data,
+			expirationDate: data.expirationDate?.toISOString(),
+			fileUrl,
+		})
 
-				return url
-			})
-		)
-
-		return Response.json({ urls })
-	} catch (error: unknown) {
-		console.log(error)
-		return Response.json({ error: (error as Error).message })
+		return {
+			ok: true,
+			data: result,
+		}
+	} catch (error) {
+		console.error(error)
+		return {
+			ok: false,
+			error: (error as Error).message,
+		}
 	}
 }

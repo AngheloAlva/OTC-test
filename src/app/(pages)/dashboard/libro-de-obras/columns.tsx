@@ -51,7 +51,7 @@ export const columns: ColumnDef<typeof workBook.$inferSelect>[] = [
 		header: "Fecha de inicio",
 		cell: ({ row }) => {
 			const date = row.getValue("initialDate")
-			const formattedDate = format(date as Date, "MM/dd/yyyy")
+			const formattedDate = format(date as Date, "dd/MM/yyyy")
 			return <div className="text-right font-medium">{formattedDate}</div>
 		},
 	},
@@ -60,7 +60,7 @@ export const columns: ColumnDef<typeof workBook.$inferSelect>[] = [
 		header: "Fecha estimada de fin",
 		cell: ({ row }) => {
 			const date = row.getValue("estimatedEndDate")
-			const formattedDate = format(date as Date, "MM/dd/yyyy")
+			const formattedDate = format(date as Date, "dd/MM/yyyy")
 			return <div className="text-right font-medium">{formattedDate}</div>
 		},
 	},
