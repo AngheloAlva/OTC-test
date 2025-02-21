@@ -1,13 +1,13 @@
-import { getWorkTrackers } from "@/actions/work-trackers/getWorkTrackers"
-
+import { getWorkBooks } from "@/actions/work-books/getWorkBook"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import Link from "next/link"
 
-import WorksTrackersTable from "@/components/sections/workTrack/WorksTrackersTable"
 import { Button } from "@/components/ui/button"
+import { DataTable } from "./DataTable"
+import { columns } from "./columns"
 
-export default async function ActivityLogPage() {
+export default async function WorkBooksPage() {
 	const res = await auth.api.getSession({
 		headers: await headers(),
 	})
@@ -20,12 +20,12 @@ export default async function ActivityLogPage() {
 		)
 	}
 
-	const workTrackers = await getWorkTrackers(res.user.id)
+	const data = await getWorkBooks(res.user.id)
 
-	if (!workTrackers.ok || !workTrackers.data) {
+	if (!data.ok || !data.data) {
 		return (
 			<main className="flex h-screen items-center justify-center">
-				<p>{workTrackers.message}</p>
+				<p>{data.message}</p>
 			</main>
 		)
 	}
@@ -33,12 +33,12 @@ export default async function ActivityLogPage() {
 	return (
 		<main className="flex h-full flex-col items-center justify-between gap-8 p-8">
 			<div className="w-full space-y-10 text-center">
-				<h1 className="text-3xl font-bold">Registro de Actividades</h1>
-				<WorksTrackersTable worksTrackers={workTrackers.data} />
+				<h1 className="text-3xl font-bold">Libro de Obras</h1>
+				<DataTable columns={columns} data={data.data} />
 			</div>
 
-			<Link href="/dashboard/registro-actividades/agregar">
-				<Button size={"lg"}>Agregar Actividad</Button>
+			<Link href="/dashboard/libro-de-obras/agregar">
+				<Button size={"lg"}>Agregar Obra</Button>
 			</Link>
 		</main>
 	)

@@ -1,19 +1,15 @@
 "use client"
 
-import { createWorkTracker } from "@/actions/work-trackers/createWorkTracker"
-import { workTrackerSchema } from "@/lib/form-schemas/work-tracker-schema"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { authClient } from "@/lib/auth-client"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
+import { useFieldArray, useForm } from "react-hook-form"
 import { es } from "date-fns/locale"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { z } from "zod"
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,81 +24,64 @@ import {
 	FormControl,
 	FormMessage,
 } from "@/components/ui/form"
+import { dailyActivitySchema } from "@/lib/form-schemas/daily-activity.schema"
+import { createDailyActivity } from "@/actions/daily-activities/createDailyActivity"
 
-export default function WorkTrackerForm(): React.ReactElement {
-	const { data: session, isPending } = authClient.useSession()
-
-	const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
+export default function DailyActivityForm({
+	workBookId,
+}: {
+	workBookId: number
+}): React.ReactElement {
 	const [loading, setLoading] = useState(false)
-	// const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const { toast } = useToast()
 	const router = useRouter()
 
-	const form = useForm<z.infer<typeof workTrackerSchema>>({
-		resolver: zodResolver(workTrackerSchema),
+	const form = useForm<z.infer<typeof dailyActivitySchema>>({
+		resolver: zodResolver(dailyActivitySchema),
 		defaultValues: {
-			userId: session?.user.id,
-			location: "",
-			otNumber: "",
-			patrolType: "",
-			description: "",
-			date: new Date(),
-			dedicatedHours: "",
-			quantityPersons: "",
-			status: "pendiente",
+			activityEndTime: "",
+			activityName: "",
+			activityStartTime: "",
+			comments: "",
+			executionDate: new Date(),
+			personnel: [
+				{
+					name: "",
+					position: "",
+				},
+			],
+			workBookId,
 		},
 	})
 
-	useEffect(() => {
-		if (!isPending && session?.user) {
-			form.setValue("userId", session?.user.id)
-		}
-	}, [isPending])
-
-	useEffect(() => {
-		navigator.geolocation.getCurrentPosition((position) => {
-			form.setValue("location", `${position.coords.latitude},${position.coords.longitude}`)
-		})
-	}, [form])
-
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const files = e.target.files
-
-		if (files?.length) {
-			setSelectedFiles(files)
-			// form.setValue("attachments", files)
-		}
-	}
-
-	useEffect(() => {
-		navigator.geolocation.getCurrentPosition((position) => {
-			form.setValue("location", `${position.coords.latitude},${position.coords.longitude}`)
-		})
-	}, [form])
+	const { fields, append, remove } = useFieldArray({
+		control: form.control,
+		name: "personnel",
+	})
 
 	useEffect(() => {
 		console.log(form.formState)
 		console.log(form.formState.errors)
 	}, [form.formState])
 
-	async function onSubmit(values: z.infer<typeof workTrackerSchema>) {
+	async function onSubmit(values: z.infer<typeof dailyActivitySchema>) {
 		try {
 			setLoading(true)
 
-			const { ok, message } = await createWorkTracker(values)
+			const { ok, message } = await createDailyActivity(values)
 
 			if (ok) {
 				toast({
-					title: "Registro creado",
+					title: "Actividad diaria creado",
 					description: message,
 					duration: 5000,
 				})
 
-				router.push("/dashboard/registro-actividades")
+				router.push(`/dashboard/libro-de-obras/${workBookId}`)
 			} else {
 				toast({
-					title: "Error al crear el registro",
+					title: "Error al crear la actividad diaria",
 					description: message,
 					variant: "destructive",
 					duration: 5000,
@@ -111,8 +90,8 @@ export default function WorkTrackerForm(): React.ReactElement {
 		} catch (error) {
 			console.error(error)
 			toast({
-				title: "Error al crear el registro",
-				description: "Ocurrió un error al intentar crear el registro",
+				title: "Error al crear la actividad diaria",
+				description: "Ocurrió un error al intentar crear la actividad diaria",
 				variant: "destructive",
 				duration: 5000,
 			})
@@ -123,35 +102,17 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-col gap-3">
+			<form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-col gap-4">
 				<FormField
 					control={form.control}
-					name="otNumber"
+					name="comments"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel className="text-gray-700">Numero de OT</FormLabel>
-							<FormControl>
-								<Input
-									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Numero de OT"
-									{...field}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-
-				<FormField
-					control={form.control}
-					name="description"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel className="text-gray-700">Descripción</FormLabel>
+							<FormLabel className="text-gray-700">Comentarios</FormLabel>
 							<FormControl>
 								<Textarea
-									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Descripción"
+									className="min-h-32 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
+									placeholder="Comentarios"
 									{...field}
 								/>
 							</FormControl>
@@ -162,10 +123,10 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 				<FormField
 					control={form.control}
-					name="date"
+					name="executionDate"
 					render={({ field }) => (
 						<FormItem className="flex flex-col">
-							<FormLabel>Fecha de realización</FormLabel>
+							<FormLabel>Fecha de Ejecución</FormLabel>
 							<Popover>
 								<PopoverTrigger asChild>
 									<FormControl>
@@ -202,14 +163,14 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 				<FormField
 					control={form.control}
-					name="patrolType"
+					name="activityStartTime"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel className="text-gray-700">Tipo de patrullaje</FormLabel>
+							<FormLabel className="text-gray-700">Hora de Inicio</FormLabel>
 							<FormControl>
 								<Input
 									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Tipo de patrullaje"
+									placeholder="Hora de Inicio"
 									{...field}
 								/>
 							</FormControl>
@@ -220,14 +181,14 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 				<FormField
 					control={form.control}
-					name="dedicatedHours"
+					name="activityEndTime"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel className="text-gray-700">Horas dedicadas</FormLabel>
+							<FormLabel className="text-gray-700">Hora de Fin</FormLabel>
 							<FormControl>
 								<Input
 									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Horas dedicadas"
+									placeholder="Hora de Fin"
 									{...field}
 								/>
 							</FormControl>
@@ -238,15 +199,14 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 				<FormField
 					control={form.control}
-					name="quantityPersons"
+					name="activityName"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel className="text-gray-700">Cantidad de personas</FormLabel>
+							<FormLabel className="text-gray-700">Nombre de la Actividad</FormLabel>
 							<FormControl>
 								<Input
-									type="number"
 									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Cantidad de personas"
+									placeholder="Nombre de la Actividad"
 									{...field}
 								/>
 							</FormControl>
@@ -255,48 +215,72 @@ export default function WorkTrackerForm(): React.ReactElement {
 					)}
 				/>
 
-				<FormField
-					control={form.control}
-					name="status"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Estado</FormLabel>
-							<Select onValueChange={field.onChange} defaultValue={field.value}>
-								<FormControl>
-									<SelectTrigger className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700">
-										<SelectValue placeholder="Selecciona el estado" />
-									</SelectTrigger>
-								</FormControl>
-								<SelectContent>
-									<SelectItem value="pendiente">Pendiente</SelectItem>
-									<SelectItem value="aprobado">Aprobado</SelectItem>
-									<SelectItem value="rechazado">Rechazado</SelectItem>
-								</SelectContent>
-							</Select>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
+				<div className="my-6 flex flex-col gap-4 border-y border-gray-200 py-4">
+					{fields.map((field, index) => (
+						<div key={field.id} className="grid grid-cols-1 gap-x-4 md:grid-cols-2">
+							<div className="flex items-center justify-between gap-2 md:col-span-2">
+								<h3 className="text-lg font-semibold text-gray-800">Personal #{index + 1}</h3>
 
-				<FormItem>
-					<FormLabel className="text-gray-700">Adjuntos</FormLabel>
-					<FormControl>
-						<Input
-							multiple
-							type="file"
-							onChange={handleFileChange}
-							className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-gray-700 hover:file:bg-gray-200"
-							accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-						/>
-					</FormControl>
-					{selectedFiles && (
-						<p className="text-sm text-gray-500">
-							{selectedFiles.length} archivo{selectedFiles.length > 1 && "s"} seleccionado
-						</p>
-					)}
-				</FormItem>
+								<Button
+									type="button"
+									onClick={() => remove(index)}
+									className="mt-2 md:col-span-2"
+									variant="destructive"
+								>
+									Eliminar Personal #{index + 1}
+								</Button>
+							</div>
 
-				<Button className="mt-4 md:col-span-2" type="submit" disabled={loading}>
+							<FormField
+								control={form.control}
+								name={`personnel.${index}.name`}
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel className="text-gray-700">Nombre del Personal</FormLabel>
+										<FormControl>
+											<Input
+												className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
+												placeholder="Nombre del Personal"
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name={`personnel.${index}.position`}
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel className="text-gray-700">Posición del Personal</FormLabel>
+										<FormControl>
+											<Input
+												className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
+												placeholder="Posición del Personal"
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+					))}
+
+					<Button
+						type="button"
+						variant={"secondary"}
+						size={"lg"}
+						onClick={() => append({ name: "", position: "" })}
+						className="mt-10 w-full"
+					>
+						Añadir nuevo Personal
+					</Button>
+				</div>
+
+				<Button className="mt-4 md:col-span-2" type="submit" size={"lg"} disabled={loading}>
 					{loading ? (
 						<div role="status" className="flex items-center justify-center">
 							<svg

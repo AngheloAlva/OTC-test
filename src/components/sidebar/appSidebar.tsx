@@ -3,7 +3,15 @@
 import Image from "next/image"
 import Link from "next/link"
 
-import { Send, FileText, LifeBuoy, FolderPlus, MonitorPlay } from "lucide-react"
+import {
+	Send,
+	FileText,
+	LifeBuoy,
+	FolderPlus,
+	MonitorPlay,
+	BookCopy,
+	FileSearch,
+} from "lucide-react"
 import { NavSecondary } from "./navSecondary"
 import { NavMain } from "./navMain"
 import { NavUser } from "./navUser"
@@ -34,6 +42,16 @@ const data = {
 			url: "/dashboard/registro-actividades",
 			icon: FolderPlus,
 		},
+		{
+			name: "Libro de Obras",
+			url: "/dashboard/libro-de-obras",
+			icon: BookCopy,
+		},
+		{
+			name: "Documentación",
+			url: "/dashboard/documentacion",
+			icon: FileSearch,
+		},
 	],
 	navSecondary: [
 		{
@@ -57,7 +75,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					<SidebarMenuItem>
 						<SidebarMenuButton size="lg" asChild>
 							<Link href="#">
-								<div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+								<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
 									<Image src="/logo.jpeg" width={50} height={50} alt="Logo" />
 								</div>
 								<div className="grid flex-1 text-left text-sm leading-tight">

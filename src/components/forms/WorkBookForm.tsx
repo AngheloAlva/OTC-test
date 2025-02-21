@@ -1,7 +1,5 @@
 "use client"
 
-import { createWorkTracker } from "@/actions/work-trackers/createWorkTracker"
-import { workTrackerSchema } from "@/lib/form-schemas/work-tracker-schema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { authClient } from "@/lib/auth-client"
 import { useToast } from "@/hooks/use-toast"
@@ -28,29 +26,30 @@ import {
 	FormControl,
 	FormMessage,
 } from "@/components/ui/form"
+import { workBookSchema } from "@/lib/form-schemas/work-book.schema"
+import { createWorkBook } from "@/actions/work-books/createWorkBook"
 
-export default function WorkTrackerForm(): React.ReactElement {
+export default function WorkBookForm(): React.ReactElement {
 	const { data: session, isPending } = authClient.useSession()
-
-	const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
 	const [loading, setLoading] = useState(false)
-	// const fileInputRef = useRef<HTMLInputElement>(null)
 
 	const { toast } = useToast()
 	const router = useRouter()
 
-	const form = useForm<z.infer<typeof workTrackerSchema>>({
-		resolver: zodResolver(workTrackerSchema),
+	const form = useForm<z.infer<typeof workBookSchema>>({
+		resolver: zodResolver(workBookSchema),
 		defaultValues: {
 			userId: session?.user.id,
 			location: "",
 			otNumber: "",
-			patrolType: "",
-			description: "",
-			date: new Date(),
-			dedicatedHours: "",
-			quantityPersons: "",
-			status: "pendiente",
+			workName: "",
+			otcInspectorName: "",
+			contractingCopany: "",
+			otcInspectorPhone: "",
+			initialDate: new Date(),
+			workResponsibleName: "",
+			workResponsiblePhone: "",
+			estimatedEndDate: new Date(),
 		},
 	})
 
@@ -66,15 +65,6 @@ export default function WorkTrackerForm(): React.ReactElement {
 		})
 	}, [form])
 
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const files = e.target.files
-
-		if (files?.length) {
-			setSelectedFiles(files)
-			// form.setValue("attachments", files)
-		}
-	}
-
 	useEffect(() => {
 		navigator.geolocation.getCurrentPosition((position) => {
 			form.setValue("location", `${position.coords.latitude},${position.coords.longitude}`)
@@ -86,11 +76,11 @@ export default function WorkTrackerForm(): React.ReactElement {
 		console.log(form.formState.errors)
 	}, [form.formState])
 
-	async function onSubmit(values: z.infer<typeof workTrackerSchema>) {
+	async function onSubmit(values: z.infer<typeof workBookSchema>) {
 		try {
 			setLoading(true)
 
-			const { ok, message } = await createWorkTracker(values)
+			const { ok, message } = await createWorkBook(values)
 
 			if (ok) {
 				toast({
@@ -99,7 +89,7 @@ export default function WorkTrackerForm(): React.ReactElement {
 					duration: 5000,
 				})
 
-				router.push("/dashboard/registro-actividades")
+				router.push("/dashboard/libro-de-obras")
 			} else {
 				toast({
 					title: "Error al crear el registro",
@@ -123,7 +113,7 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-col gap-3">
+			<form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-col gap-4">
 				<FormField
 					control={form.control}
 					name="otNumber"
@@ -144,14 +134,14 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 				<FormField
 					control={form.control}
-					name="description"
+					name="workName"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel className="text-gray-700">Descripción</FormLabel>
+							<FormLabel className="text-gray-700">Nombre de la Obra</FormLabel>
 							<FormControl>
 								<Textarea
 									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Descripción"
+									placeholder="Nombre de la obra"
 									{...field}
 								/>
 							</FormControl>
@@ -162,10 +152,10 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 				<FormField
 					control={form.control}
-					name="date"
+					name="initialDate"
 					render={({ field }) => (
 						<FormItem className="flex flex-col">
-							<FormLabel>Fecha de realización</FormLabel>
+							<FormLabel>Fecha de Inicio</FormLabel>
 							<Popover>
 								<PopoverTrigger asChild>
 									<FormControl>
@@ -202,51 +192,136 @@ export default function WorkTrackerForm(): React.ReactElement {
 
 				<FormField
 					control={form.control}
-					name="patrolType"
+					name="estimatedEndDate"
 					render={({ field }) => (
-						<FormItem>
-							<FormLabel className="text-gray-700">Tipo de patrullaje</FormLabel>
-							<FormControl>
-								<Input
-									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Tipo de patrullaje"
-									{...field}
-								/>
-							</FormControl>
+						<FormItem className="flex flex-col">
+							<FormLabel>Fecha de Finalizacion</FormLabel>
+							<Popover>
+								<PopoverTrigger asChild>
+									<FormControl>
+										<Button
+											variant={"outline"}
+											className={cn(
+												"w-full rounded-md border-gray-200 bg-white pl-3 text-left text-sm font-normal text-gray-700",
+												!field.value && "text-muted-foreground"
+											)}
+										>
+											{field.value ? (
+												format(field.value, "PPP", { locale: es })
+											) : (
+												<span>Selecciona la fecha</span>
+											)}
+											<CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+										</Button>
+									</FormControl>
+								</PopoverTrigger>
+								<PopoverContent className="w-auto p-0" align="start">
+									<Calendar
+										mode="single"
+										selected={field.value}
+										onSelect={field.onChange}
+										disabled={(date) => date < new Date("1900-01-01")}
+										initialFocus
+									/>
+								</PopoverContent>
+							</Popover>
 							<FormMessage />
 						</FormItem>
 					)}
 				/>
 
-				<FormField
-					control={form.control}
-					name="dedicatedHours"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel className="text-gray-700">Horas dedicadas</FormLabel>
-							<FormControl>
-								<Input
-									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Horas dedicadas"
-									{...field}
-								/>
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
+				<div className="my-4 grid grid-cols-1 gap-4 border-y border-gray-200 py-4 md:grid-cols-2">
+					<p className="text-gray-700 md:col-span-2">
+						<strong>Responsable de la obra</strong>
+					</p>
+
+					<FormField
+						control={form.control}
+						name="workResponsibleName"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel className="text-gray-700">Nombre del Responsable</FormLabel>
+								<FormControl>
+									<Input
+										className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
+										placeholder="Nombre"
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="workResponsiblePhone"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel className="text-gray-700">Teléfono del Responsable</FormLabel>
+								<FormControl>
+									<Input
+										className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
+										placeholder="Teléfono"
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<p className="text-gray-700 md:col-span-2">
+						<strong>Inspector OTC</strong>
+					</p>
+
+					<FormField
+						control={form.control}
+						name="otcInspectorName"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel className="text-gray-700">Nombre del Inspector</FormLabel>
+								<FormControl>
+									<Input
+										className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
+										placeholder="Nombre"
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					<FormField
+						control={form.control}
+						name="otcInspectorPhone"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel className="text-gray-700">Teléfono del Inspector</FormLabel>
+								<FormControl>
+									<Input
+										className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
+										placeholder="Teléfono"
+										{...field}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
 
 				<FormField
 					control={form.control}
-					name="quantityPersons"
+					name="contractingCopany"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel className="text-gray-700">Cantidad de personas</FormLabel>
+							<FormLabel className="text-gray-700">Empresa Contratista</FormLabel>
 							<FormControl>
 								<Input
-									type="number"
 									className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700"
-									placeholder="Cantidad de personas"
+									placeholder="Nombre de la empresa contratista"
 									{...field}
 								/>
 							</FormControl>
@@ -268,9 +343,9 @@ export default function WorkTrackerForm(): React.ReactElement {
 									</SelectTrigger>
 								</FormControl>
 								<SelectContent>
-									<SelectItem value="pendiente">Pendiente</SelectItem>
-									<SelectItem value="aprobado">Aprobado</SelectItem>
-									<SelectItem value="rechazado">Rechazado</SelectItem>
+									<SelectItem value="planificado">Planificado</SelectItem>
+									<SelectItem value="ejecucion">Ejecución</SelectItem>
+									<SelectItem value="finalizado">Finalizado</SelectItem>
 								</SelectContent>
 							</Select>
 							<FormMessage />
@@ -278,23 +353,52 @@ export default function WorkTrackerForm(): React.ReactElement {
 					)}
 				/>
 
-				<FormItem>
-					<FormLabel className="text-gray-700">Adjuntos</FormLabel>
-					<FormControl>
-						<Input
-							multiple
-							type="file"
-							onChange={handleFileChange}
-							className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-gray-700 hover:file:bg-gray-200"
-							accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-						/>
-					</FormControl>
-					{selectedFiles && (
-						<p className="text-sm text-gray-500">
-							{selectedFiles.length} archivo{selectedFiles.length > 1 && "s"} seleccionado
-						</p>
+				<FormField
+					control={form.control}
+					name="workType"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Tipo de Obra</FormLabel>
+							<Select onValueChange={field.onChange} defaultValue={field.value}>
+								<FormControl>
+									<SelectTrigger className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700">
+										<SelectValue placeholder="Selecciona el tipo de obra" />
+									</SelectTrigger>
+								</FormControl>
+								<SelectContent>
+									<SelectItem value="construccion">Construcción</SelectItem>
+									<SelectItem value="mantenimiento">Mantenimiento</SelectItem>
+									<SelectItem value="ampliacion">Ampliación</SelectItem>
+								</SelectContent>
+							</Select>
+							<FormMessage />
+						</FormItem>
 					)}
-				</FormItem>
+				/>
+
+				<FormField
+					control={form.control}
+					name="progressStatus"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Estado del Avance</FormLabel>
+							<Select onValueChange={field.onChange} defaultValue={field.value}>
+								<FormControl>
+									<SelectTrigger className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700">
+										<SelectValue placeholder="Selecciona el estado del avance" />
+									</SelectTrigger>
+								</FormControl>
+								<SelectContent>
+									<SelectItem value="pendiente">Pendiente</SelectItem>
+									<SelectItem value="proceso">Proceso</SelectItem>
+									<SelectItem value="terminado">Terminado</SelectItem>
+									<SelectItem value="postergado">Postergado</SelectItem>
+								</SelectContent>
+							</Select>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
 				<Button className="mt-4 md:col-span-2" type="submit" disabled={loading}>
 					{loading ? (
