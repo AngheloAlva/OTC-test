@@ -16,7 +16,7 @@ export const documentsSubgroup = sqliteTable("documents_subgroup", {
 		.default(sql`CURRENT_TIMESTAMP`)
 		.notNull(),
 
-	documentsGroup: text("documents_group")
+	documentsGroup: integer("documents_group")
 		.references(() => documentsGroup.id)
 		.notNull(),
 })

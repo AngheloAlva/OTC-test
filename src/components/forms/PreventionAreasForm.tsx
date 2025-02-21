@@ -26,6 +26,7 @@ export default function PreventionAreasForm({
 	workBookId: number
 }): React.ReactElement {
 	const [loading, setLoading] = useState(false)
+	const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
 
 	const { toast } = useToast()
 	const router = useRouter()
@@ -39,6 +40,15 @@ export default function PreventionAreasForm({
 			recommendations: "",
 		},
 	})
+
+	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const files = e.target.files
+
+		if (files?.length) {
+			setSelectedFiles(files)
+			// form.setValue("attachments", files)
+		}
+	}
 
 	useEffect(() => {
 		console.log(form.formState)
@@ -136,6 +146,24 @@ export default function PreventionAreasForm({
 						</FormItem>
 					)}
 				/>
+
+				<FormItem>
+					<FormLabel className="text-gray-700">Adjuntos</FormLabel>
+					<FormControl>
+						<Input
+							multiple
+							type="file"
+							onChange={handleFileChange}
+							className="w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-gray-700 hover:file:bg-gray-200"
+							accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+						/>
+					</FormControl>
+					{selectedFiles && (
+						<p className="text-sm text-gray-500">
+							{selectedFiles.length} archivo{selectedFiles.length > 1 && "s"} seleccionado
+						</p>
+					)}
+				</FormItem>
 
 				<Button className="mt-4 md:col-span-2" type="submit" size={"lg"} disabled={loading}>
 					{loading ? (
