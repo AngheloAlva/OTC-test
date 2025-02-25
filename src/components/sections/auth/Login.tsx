@@ -12,7 +12,7 @@ export default function Login(): React.ReactElement {
 						alt="Login"
 						width={1000}
 						height={1280}
-						src="/images/auth/login.jpeg"
+						src="/images/auth/login.jpg"
 						className="absolute inset-0 h-full w-full object-cover object-right opacity-80"
 					/>
 

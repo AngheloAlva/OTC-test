@@ -19,14 +19,14 @@ export default function Hero(): React.ReactElement {
 					<div className="mt-8 flex flex-wrap gap-4 text-center">
 						<Link
 							href="/auth/register"
-							className="focus:ring-3 focus:outline-hidden block w-full rounded-sm bg-feature px-12 py-3 text-sm font-medium text-white shadow-sm hover:brightness-90 sm:w-auto"
+							className="focus:ring-3 focus:outline-hidden block w-full rounded-md bg-feature px-12 py-3 text-sm font-medium text-white shadow-sm hover:brightness-90 sm:w-auto"
 						>
 							Registrarse
 						</Link>
 
 						<a
 							href="/auth/login"
-							className="focus:ring-3 focus:outline-hidden block w-full rounded-sm bg-white px-12 py-3 text-sm font-medium text-feature shadow-sm hover:brightness-90 sm:w-auto"
+							className="focus:ring-3 focus:outline-hidden block w-full rounded-md bg-white px-12 py-3 text-sm font-medium text-feature shadow-sm hover:brightness-90 sm:w-auto"
 						>
 							Iniciar Sesión
 						</a>
